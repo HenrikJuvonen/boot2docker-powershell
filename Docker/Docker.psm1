@@ -5,11 +5,9 @@ $VBM="$env:ProgramW6432\Oracle\VirtualBox\VBoxManage.exe"
 
 $DOCKER_PORT=4243
 $SSH_HOST_PORT=2222
-$MISC_PORT_START=49100
-$MISC_PORT_END=49200
 
-$VM_DISK_SIZE=4000
-$VM_MEM=1024
+$VM_DISK_SIZE=40000
+$VM_MEM=2048
 
 $VM_DISK="$DOCKERVM_CFG_DIR\$VM_NAME.vmdk"
 $BOOT2DOCKER_ISO="$DOCKERVM_CFG_DIR\boot2docker.iso"
@@ -26,9 +24,9 @@ function Connect-Docker {
 function Format-Docker {
   if (prepare) { return }
   
-  (&$VBM startvm $VM_NAME --type headless) 2>&1>$null
+  (&$VBM startvm $VM_NAME --type headless)
   wait_start
-  (&echo y | &$DOCKERVM_PLINK -ssh -P $SSH_HOST_PORT -pw tcuser docker@localhost "mkfs.ext4 -F -L boot2docker-data /dev/sda && sudo poweroff") 2>&1>$null
+  (&echo y | &$DOCKERVM_PLINK -ssh -P $SSH_HOST_PORT -pw tcuser docker@localhost "mkfs.ext4 -F -L boot2docker-data /dev/sda && sudo poweroff")
   wait_stop
 }
 
@@ -69,7 +67,7 @@ function Install-Docker {
 
   $VM_OSTYPE="Linux26_64"
   $VM_NIC="82540EM"
-  $VM_CPUS=(get_cores)/2
+  $VM_CPUS=(get_cores)
 
   if ((port_in_use $DOCKER_PORT)) {
     Write-Output "DOCKER_PORT=$DOCKER_PORT on localhost is used by an other process!"
@@ -121,12 +119,14 @@ function Install-Docker {
   (&$VBM modifyvm $VM_NAME `
     --natpf1 "ssh,tcp,127.0.0.1,$SSH_HOST_PORT,,22" `
     --natpf1 "docker,tcp,127.0.0.1,$DOCKER_PORT,,4243")
-    
-  for ($i=$MISC_PORT_START; $i -le $MISC_PORT_END; $i++) {
-    (&$VBM modifyvm $VM_NAME `
-      --natpf1 "TCP-$i,tcp,127.0.0.1,$i,,$i" `
-      --natpf1 "UDP-$i,udp,127.0.0.1,$i,,$i")
-  }
+  
+  $netadp=(get-wmiobject win32_networkadapter | Where ServiceName -eq VBoxNetAdp | Select Name)[0].Name
+
+  (&$VBM modifyvm $VM_NAME `
+    --nic2 hostonly `
+    --nictype2 $VM_NIC `
+    --hostonlyadapter2 "$netadp" `
+    --cableconnected2 on)
   
   If (!(Test-Path $BOOT2DOCKER_ISO)) {
     log "boot2docker.iso not found."
