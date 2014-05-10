@@ -21,15 +21,26 @@ You may also need to set the script execution policy to RemoteSigned (see http:/
 Following commands are provided (some of them might be renamed later):
 
   `Connect-Docker` - Connects to VM using putty
+  
   `Format-Docker` - Connects to VM and runs mkfs-script and reboots using plink
+  
   `Get-Docker` - Shows status of VM
+  
   `Install-Docker` - Initializes, formats and starts VM
+  
   `Measure-Docker` - Shows information about VM
+  
   `Restart-Docker` - Restarts VM
+  
   `Start-Docker` - Starts VM
+  
   `Stop-Docker` - Stops VM
+  
   `Suspend-Docker` - Suspends VM
+  
   `Uninstall-Docker` - Destroys VM
+  
   `Update-Docker` - Downloads the latest boot2docker ISO image
+  
 
 The config variables are in the `Docker\Docker.psm1` file. VM ports, disk size and memory size can be configured.
