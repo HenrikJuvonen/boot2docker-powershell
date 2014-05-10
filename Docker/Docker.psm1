@@ -156,7 +156,7 @@ function Measure-Docker {
   if (prepare) { return }
   
   if (is_installed) {
-    Write-Output get_info
+    Write-Output (get_info)
   } else {
     Write-Output "$VM_NAME does not exist."
   }
